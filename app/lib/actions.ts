@@ -1,10 +1,29 @@
 'use server'
 
-import { db } from './prisma/db.server';
 import cloudinary from './cloudinary';
 
+import { db } from './prisma/db.server';
+import { signIn } from '@/auth';
+import { AuthError } from 'next-auth';
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
+import { auth } from '@/auth';
+
+export async function authenticate(loginData: { email: string; password: string }) {
+  try {
+    await signIn('credentials', loginData);
+  } catch (error) {
+    if (error instanceof AuthError) {
+      switch (error.type) {
+        case 'CredentialsSignin':
+          return { success: false, message: 'Invalid credentials.' };
+        default:
+          return { success: false, message: 'Unknown error.' };
+      }
+    }
+  }
+  return { success: true, message: 'Successfully logged in.' };
+}
+
 async function uploadImage(data: File) {
   const arrayBuffer = await data.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
@@ -21,6 +40,10 @@ async function uploadImage(data: File) {
 }
 
 export async function createPost(formData: FormData) {
+  const session = await auth();
+
+  const id_author = session?.user?.id;
+  
   const file = formData.get('image') as File;
   const title = formData.get('title') as string;
   const body = formData.get('body') as string;
@@ -37,7 +60,7 @@ export async function createPost(formData: FormData) {
         summary: summary,
         id_category: category,
         image: [imageUpload?.public_id, imageUpload?.secure_url],
-        id_author: 'cls1k2jh70000k53pdwacio2y',
+        id_author: id_author,
         type: type,
       },
     })
@@ -92,7 +115,7 @@ export async function createPost(formData: FormData) {
 
 export async function DeletePost(id: string, public_id: string) {
   try {
-    cloudinary.uploader.destroy(public_id).then((result: any) => {});
+    cloudinary.uploader.destroy(public_id).then((result: any) => { });
     await db.post.delete({
       where: {
         id: id

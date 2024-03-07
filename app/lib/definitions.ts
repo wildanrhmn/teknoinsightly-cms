@@ -45,3 +45,14 @@ export type Comment = {
   website?: string;
   message: string;
 };
+
+export type User = {
+  id?: string;
+  name: string;
+  password: string;
+  email: string;
+  phone: string;
+  bio: string;
+  role: string;
+  image: string | null;
+}

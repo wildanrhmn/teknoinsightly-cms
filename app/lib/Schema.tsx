@@ -16,3 +16,8 @@ export const ArticleDataSchema = z.object({
       ".png are accepted."
     ),
 })
+
+export const LoginDataSchema = z.object({
+  email: z.string().email({message: 'Invalid email.'}),
+  password: z.string().min(6),
+})

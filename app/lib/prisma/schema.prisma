@@ -10,10 +10,12 @@ datasource db {
 model Author {
   id          String        @id
   name        String        @unique
-  email       String
+  password    String        @default("")
+  email       String        @unique
   phone       String
   bio         String
   image       String?
+  role        String        @default("user")
   PopularPost PopularPost[]
   Post        Post[]
 }
