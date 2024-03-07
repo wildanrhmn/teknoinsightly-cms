@@ -32,7 +32,7 @@ export default function LoginForm() {
       toast.error(result.message);
     }
     reset();
-    router.push("/dashboard");
+    router.push("/dashboard/articles");
   }
   return (
     <form className="space-y-3" onSubmit={handleSubmit(processForm)}>

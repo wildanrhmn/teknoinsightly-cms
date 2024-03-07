@@ -2,8 +2,9 @@ import { CKEditor } from '@ckeditor/ckeditor5-react';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 
 export default function Editor({
-    value, onChange
-} : {
+    value,
+    onChange
+}: {
     value: string,
     onChange: (value: string) => void
 }) {
@@ -14,6 +15,9 @@ export default function Editor({
             onChange={(event, editor) => {
                 const data = editor.getData();
                 onChange(data);
+            }}
+            onReady={(editor) => {
+                editor.setData(value);
             }}
         />
     );

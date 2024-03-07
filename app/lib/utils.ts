@@ -6,7 +6,7 @@ import {
   differenceInWeeks,
 } from "date-fns";
 
-export function formatDate(datestring: string) {
+export function formatDate(datestring: Date) {
   const date = new Date(datestring);
   const today = new Date();
 

@@ -35,7 +35,7 @@ export default async function Table({
                     <p>{`Dibuat pada ${post.created_at}`}</p>
                   </div>
                   <div className="flex justify-end gap-2">
-                    <Update id={post.id} />
+                    <Update id={post.id} text={type} />
                     <Delete id={post.id} public_id={post.image[0]} />
                   </div>
                 </div>
@@ -90,7 +90,7 @@ export default async function Table({
                   </td>
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">
                     <div className="flex justify-end gap-3">
-                      <Update id={post.id} />
+                      <Update id={post.id} text={type} />
                       <Delete id={post.id} public_id={post.image[0]}  />
                     </div>
                   </td>

@@ -43,7 +43,7 @@ export async function createPost(formData: FormData) {
   const session = await auth();
 
   const id_author = session?.user?.id;
-  
+
   const file = formData.get('image') as File;
   const title = formData.get('title') as string;
   const body = formData.get('body') as string;
@@ -68,50 +68,48 @@ export async function createPost(formData: FormData) {
     return { success: false, message: error }
   }
   revalidatePath('/dashboard/articles');
-  revalidatePath('/dashboard/articles/create');
   revalidatePath('/dashboard/tutorial');
-  revalidatePath('/dashboard/tutorial/create');
   return { success: true, message: `${type.charAt(0).toUpperCase() + type.slice(1)} Created` }
 }
 
-// export async function UpdateContent(id: string, prevState: State, formData: FormData){
-//     const validatedFields = Update.safeParse({
-//         customerId: formData.get('customerId'),
-//         amount: formData.get('amount'),
-//         status: formData.get('status'),
-//       });
+export async function updateContent(id: string, formData: FormData) {
+  const file = formData.get('image') as File;
+  const title = formData.get('title') as string;
+  const body = formData.get('body') as string;
+  const summary = formData.get('summary') as string;
+  const category = formData.get('category') as string;
+  const oldImage = JSON.parse(formData.get('oldImage') as string);
 
-//       if (!validatedFields.success) {
-//         return {
-//           errors: validatedFields.error.flatten().fieldErrors,
-//           message: 'Missing Fields. Failed to Update Invoice.',
-//         };
-//       }
-
-//       const { customerId, amount, status } = validatedFields.data;
-
-//       const amountInCents = amount * 100;
-
-//       try{
-//         await db.post.update({
-//           where: {
-//             id: id
-//           },
-//           data: {
-//             customer_id: customerId,
-//             amount: amountInCents,
-//             status: status
-//           }
-//         })
-//       } catch(error){
-//         return{
-//           message: 'Database Error: ' + error
-//         }
-//       }
-
-//       revalidatePath('/dashboard/invoices');
-//       redirect('/dashboard/invoices');
-// }
+  let imageData: any;
+  if(typeof file === 'string') {
+    imageData = oldImage
+  } else {
+    imageData = await uploadImage(file).then((result: any) => {
+      return [result?.public_id, result?.secure_url]
+    });
+  }
+  try {
+      await db.post.update({
+        where: {
+          id: id
+        },
+        data: {
+          title: title,
+          body: body,
+          summary: summary,
+          id_category: category,
+          image: imageData,
+          updated_at: new Date(),
+        }
+      });
+    } catch (error) {
+      return { success: false, message: error };
+    }
+  await cloudinary.uploader.destroy(oldImage[0]);
+  revalidatePath('/dashboard/articles');
+  revalidatePath('/dashboard/tutorial');
+  return { success: true, message: `Successfully updated.` }
+}
 
 export async function DeletePost(id: string, public_id: string) {
   try {
@@ -128,4 +126,19 @@ export async function DeletePost(id: string, public_id: string) {
   }
   revalidatePath('/dashboard/articles');
   revalidatePath('/dashboard/tutorial');
+}
+
+export async function DeleteSwiper(id: string) {
+  try {
+    await db.swiper.delete({
+      where: {
+        id: id
+      }
+    })
+  } catch (error) {
+    return {
+      message: 'Database Error: ' + error
+    }
+  }
+  revalidatePath('/dashboard/swiper');
 }

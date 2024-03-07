@@ -17,10 +17,11 @@ export function Create({text}: {text: string}) {
   );
 }
 
-export function Update({ id }: { id: string }) {
+export function Update({ id, text }: { id: string, text: string }) {
+  const route = text === 'tutorial' ? 'tutorial' : 'articles';
   return (
     <Link
-      href={`/dashboard/invoices/${id}/edit`}
+      href={`/dashboard/${route}/${id}/edit`}
       className="rounded-md border p-2 hover:bg-gray-100"
     >
       <PencilIcon className="w-5" />

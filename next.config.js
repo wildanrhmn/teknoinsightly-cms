@@ -6,8 +6,19 @@ const nextConfig = {
             fs: false,
           };
         }
-    
         return config;
+      },
+      redirects() {
+        return [
+          {
+            source: '/dashboard',
+            destination: '/dashboard/swiper',
+            permanent: false,
+          },
+        ];
+      },
+      images: {
+        domains: ['res.cloudinary.com'],
       },
 };
 

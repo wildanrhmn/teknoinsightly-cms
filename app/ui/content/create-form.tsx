@@ -9,14 +9,14 @@ import { useState, useEffect } from "react";
 import { PaperClipIcon, TagIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/app/ui/button";
 import { useRouter, usePathname } from "next/navigation";
-import { ArticleDataSchema } from "@/app/lib/Schema";
+import { FormDataSchema } from "@/app/lib/Schema";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { createPost } from "@/app/lib/actions";
 import { Category } from "@/app/lib/definitions";
 
-type Inputs = z.infer<typeof ArticleDataSchema>;
+type Inputs = z.infer<typeof FormDataSchema>;
 
 const Editor = dynamic(() => import("./Editor"), { ssr: false });
 
@@ -32,7 +32,7 @@ export default function Form({categories}: {categories: Category[]}) {
     setValue,
     formState: { errors },
   } = useForm<Inputs>({
-    resolver: zodResolver(ArticleDataSchema),
+    resolver: zodResolver(FormDataSchema),
   });
   const processForm: SubmitHandler<Inputs> = async (data) => {
     setIsLoading(true);

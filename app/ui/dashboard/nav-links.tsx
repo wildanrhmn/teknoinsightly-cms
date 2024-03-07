@@ -1,7 +1,8 @@
 'use client';
 
 import {
-  HomeIcon,
+  ArrowTopRightOnSquareIcon,
+  ArrowsRightLeftIcon,
   NewspaperIcon,
   PuzzlePieceIcon
 } from '@heroicons/react/24/outline';
@@ -11,8 +12,11 @@ import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
 
 const links = [
+  { name: 'Swiper', href: '/dashboard/swiper', icon: ArrowsRightLeftIcon },
   { name: 'Articles', href: '/dashboard/articles', icon: NewspaperIcon },
   { name: 'Tutorial' , href: '/dashboard/tutorial', icon: PuzzlePieceIcon },
+  { name: 'Top Articles' , href: '/dashboard/toparticles', icon: ArrowTopRightOnSquareIcon },
+  { name: 'Top Tutorials' , href: '/dashboard/toptutorials', icon: ArrowTopRightOnSquareIcon },
 ];
 
 export default function NavLinks() {

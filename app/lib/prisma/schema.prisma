@@ -7,56 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Author {
-  id          String        @id
-  name        String        @unique
-  password    String        @default("")
-  email       String        @unique
-  phone       String
-  bio         String
-  image       String?
-  role        String        @default("user")
-  PopularPost PopularPost[]
-  Post        Post[]
-}
-
-model Category {
-  id   String @id
-  name String
-  slug String @unique
-  type String
-  Post Post[]
-}
-
-model Comment {
-  id         String   @id
-  name       String
-  email      String
-  website    String?
-  message    String
-  id_post    String
-  created_at DateTime @default(now())
-  Post       Post     @relation(fields: [id_post], references: [id])
-}
-
-model Contacted {
-  id           String  @id
-  name         String
-  email        String
-  organization String?
-  message      String
-}
-
-model PopularPost {
-  id         String   @id
-  title      String
-  image      String?
-  type       String
-  id_author  String
-  created_at DateTime
-  Author     Author   @relation(fields: [id_author], references: [id])
-}
-
 model Post {
   id          String    @id @default(cuid())
   title       String
@@ -68,7 +18,60 @@ model Post {
   id_category String
   id_author   String
   summary     String    @default("")
+  swiperId    String?   @unique
+  popularId   String?   @unique  
   Comment     Comment[]
+  PopularPost PopularPost? @relation(fields: [popularId], references: [id])
+  Swiper      Swiper?   @relation(fields: [swiperId], references: [id])
   Author      Author    @relation(fields: [id_author], references: [id])
   Category    Category  @relation(fields: [id_category], references: [id])
+}
+
+model PopularPost {
+  id         String   @id @default(cuid())
+  Post       Post?
+}
+
+model Swiper {
+  id     String  @id @default(cuid())
+  Post   Post? 
+}
+
+model Author {
+  id          String        @id @default(cuid())
+  name        String        @unique
+  password    String        @default("")
+  email       String        @unique
+  phone       String
+  bio         String
+  image       String?
+  role        String        @default("user")
+  Post        Post[]
+}
+
+model Category {
+  id   String @id @default(cuid())
+  name String
+  slug String @unique
+  type String
+  Post Post[]
+}
+
+model Comment {
+  id         String   @id @default(cuid())
+  name       String
+  email      String
+  website    String?
+  message    String
+  id_post    String
+  created_at DateTime @default(now())
+  Post       Post     @relation(fields: [id_post], references: [id])
+}
+
+model Contacted {
+  id           String  @id @default(cuid())
+  name         String
+  email        String
+  organization String?
+  message      String
 }

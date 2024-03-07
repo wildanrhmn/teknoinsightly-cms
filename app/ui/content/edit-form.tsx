@@ -1,164 +1,270 @@
-'use client';
+"use client";
 
-import { CustomerField, InvoiceForm } from '@/app/lib/definitions';
-import {
-  CheckIcon,
-  ClockIcon,
-  CurrencyDollarIcon,
-  UserCircleIcon,
-} from '@heroicons/react/24/outline';
-import Link from 'next/link';
-import { Button } from '@/app/ui/button';
+import dynamic from "next/dynamic";
+import Image from "next/image";
+import toast from "react-hot-toast";
+import Link from "next/link";
 
-import { Update } from '@/app/lib/actions';
-import { useFormState } from 'react-dom';
+import { useState, useEffect } from "react";
+import { PaperClipIcon, TagIcon } from "@heroicons/react/24/outline";
+import { Button } from "@/app/ui/button";
+import { useRouter, usePathname } from "next/navigation";
+import { EditDataSchema } from "@/app/lib/Schema";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm, SubmitHandler } from "react-hook-form";
+import { updateContent } from "@/app/lib/actions";
+import { Category, Post } from "@/app/lib/definitions";
 
-export default function EditInvoiceForm({
-  invoice,
-  customers,
+type Inputs = z.infer<typeof EditDataSchema>;
+
+const Editor = dynamic(() => import("./Editor"), { ssr: false });
+
+export default function Form({
+  dataPost,
+  categories,
 }: {
-  invoice: InvoiceForm;
-  customers: CustomerField[];
+  dataPost: Post;
+  categories: Category[];
 }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [isLoading, setIsLoading] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(dataPost.image[1]);
+  const {
+    register,
+    handleSubmit,
+    resetField,
+    setValue,
+    formState: { errors },
+  } = useForm<Inputs>({
+    resolver: zodResolver(EditDataSchema),
+  });
+  const processForm: SubmitHandler<Inputs> = async (data) => {
+    setIsLoading(true);
+    const { title, body, summary, category, image } = data;
 
-  const UpdateWithId = Update.bind(null, invoice.id);
-  const initialState = { message: null, error: {} }
-  const [state, dispatch] = useFormState(UpdateWithId, initialState);
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("body", body);
+    formData.append("summary", summary);
+    formData.append("category", category);
+    formData.append("oldImage", JSON.stringify(dataPost.image));
+    formData.append("image", image[0]);
+
+    const result: any = await updateContent(dataPost.id, formData);
+    if (result.success) {
+      toast.success(result.message);
+    }
+    if (!result.success) {
+      toast.error(result.message);
+    }
+
+    router.push(
+      pathname.includes("/articles") ? "/dashboard/articles" : "/dashboard/tutorial"
+    );
+    setIsLoading(false);
+  };
+
+  const handleImageChange = (e: any) => {
+    const file = e.target.files[0];
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setImagePreview(imageUrl);
+    }
+  };
+
+  useEffect(() => {
+    register("body");
+    register("summary");
+  }, [register]);
+
   return (
-    <form action={dispatch}>
+    <form onSubmit={handleSubmit(processForm)}>
       <div className="rounded-md bg-gray-50 p-4 md:p-6">
-        {/* Customer Name */}
         <div className="mb-4">
-          <label htmlFor="customer" className="mb-2 block text-sm font-medium">
-            Choose customer
-          </label>
-          <div className="relative">
-            <select
-              id="customer"
-              name="customerId"
-              className="peer block w-full cursor-pointer rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
-              defaultValue={invoice.customer_id}
-              aria-describedby="customer-error"
-            >
-              <option value="" disabled>
-                Select a customer
-              </option>
-              {customers.map((customer) => (
-                <option key={customer.id} value={customer.id}>
-                  {customer.name}
-                </option>
-              ))}
-            </select>
-            <UserCircleIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
-          </div>
-          <div id="customer-error" aria-live="polite" aria-atomic="true">
-            {state.errors?.customerId &&
-              state.errors.customerId.map((error: string) => (
-                <p className="mt-2 text-sm text-red-500" key={error}>
-                  {error}
-                </p>
-            ))}
-          </div>
-        </div>
-
-        {/* Invoice Amount */}
-        <div className="mb-4">
-          <label htmlFor="amount" className="mb-2 block text-sm font-medium">
-            Choose an amount
+          <label htmlFor="title" className="mb-2 block text-sm font-medium">
+            Enter Title
           </label>
           <div className="relative mt-2 rounded-md">
             <div className="relative">
               <input
-                id="amount"
-                name="amount"
-                type="number"
-                step="0.01"
-                defaultValue={invoice.amount}
-                placeholder="Enter USD amount"
+                id="title"
+                type="text"
+                placeholder="Enter title..."
                 className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
-                aria-describedby='amount-error'
+                aria-describedby="title-error"
+                defaultValue={dataPost.title}
+                {...register("title")}
               />
-              <CurrencyDollarIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+              <PaperClipIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
             </div>
-            <div id="amount-error" aria-live="polite" aria-atomic="true">
-              {state.errors?.amount &&
-                state.errors.amount.map((error: string) => (
-                  <p className="mt-2 text-sm text-red-500" key={error}>
-                    {error}
-                  </p>
-              ))}
-            </div>
+            {errors.title?.message && (
+              <p
+                className="text-sm text-red-400"
+                aria-describedby="title-error"
+              >
+                {errors.title.message}
+              </p>
+            )}
           </div>
         </div>
-
-        {/* Invoice Status */}
-        <fieldset>
-          <legend className="mb-2 block text-sm font-medium">
-            Set the invoice status
-          </legend>
-          <div className="rounded-md border border-gray-200 bg-white px-[14px] py-3">
-            <div className="flex gap-4">
-              <div className="flex items-center">
-                <input
-                  id="pending"
-                  name="status"
-                  type="radio"
-                  value="pending"
-                  defaultChecked={invoice.status === 'pending'}
-                  className="h-4 w-4 cursor-pointer border-gray-300 bg-gray-100 text-gray-600 focus:ring-2"
-                  aria-describedby='status-error'
+        <div className="mb-4">
+          <label htmlFor="body" className="mb-2 block text-sm font-medium">
+            Enter Body
+          </label>
+          <div className="relative mt-2 rounded-md">
+            <div className="relative">
+              <Editor value={dataPost.body} onChange={(value) => setValue("body", value)} />
+            </div>
+            {errors.body?.message && (
+              <p className="text-sm text-red-400" aria-describedby="body-error">
+                Body is required.
+              </p>
+            )}
+          </div>
+        </div>
+        <div className="mb-4">
+          <label htmlFor="body" className="mb-2 block text-sm font-medium">
+            Enter Summary
+          </label>
+          <div className="relative mt-2 rounded-md">
+            <div className="relative">
+              <Editor
+                value={dataPost.summary}
+                onChange={(value) => setValue("summary", value)}
+              />
+            </div>
+            {errors.summary?.message && (
+              <p className="text-sm text-red-400" aria-describedby="body-error">
+                Summary is required.
+              </p>
+            )}
+          </div>
+        </div>
+        <div className="mb-4">
+          <label htmlFor="category" className="mb-2 block text-sm font-medium">
+            Choose category
+          </label>
+          <div className="relative">
+            <select
+              id="category"
+              className="peer block w-full cursor-pointer rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
+              defaultValue={dataPost.Category.id}
+              aria-describedby="category-error"
+              {...register("category")}
+            >
+              <option value="" disabled>
+                Select a Category
+              </option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+            <TagIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
+          </div>
+          {errors.category?.message && (
+            <p
+              className="text-sm text-red-400"
+              aria-describedby="category-error"
+            >
+              {errors.category.message.toString()}
+            </p>
+          )}
+        </div>
+        <div className="mb-4">
+          <label htmlFor="title" className="mb-2 block text-sm font-medium">
+            Input Image
+          </label>
+          <div className="relative mt-2 flex cursor-pointer flex-col rounded-md border border-dashed border-gray-200 text-gray-400">
+            <input
+              id="image"
+              type="file"
+              className="absolute inset-0 z-50 m-0 h-full w-full cursor-pointer p-0 opacity-0 outline-none"
+              aria-describedby="image-error"
+              {...register("image")}
+              onChange={handleImageChange}
+            />
+            <div className="flex flex-col items-center justify-center py-10 text-center">
+              <svg
+                className="text-current-50 mr-1 h-6 w-6"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                 />
-                <label
-                  htmlFor="pending"
-                  className="ml-2 flex cursor-pointer items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600"
-                >
-                  Pending <ClockIcon className="h-4 w-4" />
-                </label>
-              </div>
-              <div className="flex items-center">
-                <input
-                  id="paid"
-                  name="status"
-                  type="radio"
-                  value="paid"
-                  defaultChecked={invoice.status === 'paid'}
-                  className="h-4 w-4 cursor-pointer border-gray-300 bg-gray-100 text-gray-600 focus:ring-2"
-                  aria-describedby='status-error'
-                />
-                <label
-                  htmlFor="paid"
-                  className="ml-2 flex cursor-pointer items-center gap-1.5 rounded-full bg-green-500 px-3 py-1.5 text-xs font-medium text-white"
-                >
-                  Paid <CheckIcon className="h-4 w-4" />
-                </label>
-              </div>
+              </svg>
+              <p className="m-0 text-[14px]">
+                Drag your files here or click in this area
+              </p>
             </div>
           </div>
-        </fieldset>
-        <div id="status-error" aria-live="polite" aria-atomic="true">
-                {state.errors?.status &&
-                  state.errors.status.map((error: string) => (
-                    <p className="mt-2 text-sm text-red-500" key={error}>
-                      {error}
-                    </p>
-                ))}
+          {errors.image?.message && (
+            <p className="text-sm text-red-400" aria-describedby="image-error">
+              {errors.image.message.toString()}
+            </p>
+          )}
+          <div className="mt-5">
+            {imagePreview && (
+              <div className="relative flex cursor-move select-none flex-col items-center overflow-hidden rounded border bg-gray-100 text-center">
+                <button
+                  onClick={() => {
+                    setImagePreview(null);
+                    resetField("image");
+                  }}
+                  className="absolute right-0 top-0 z-50 rounded-bl bg-white p-1 focus:outline-none"
+                >
+                  <svg
+                    className="h-4 w-4 text-gray-700"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
+                  </svg>
+                </button>
+                <Image
+                  src={imagePreview}
+                  alt="Image Preview"
+                  width={500}
+                  height={500}
+                  style={{ objectFit: "cover" }}
+                />
+              </div>
+            )}
           </div>
+        </div>
       </div>
-      <div className='mt-6' id="validation-error" aria-live="polite" aria-atomic="true">
-                {state.errors &&
-                    <p className="mt-2 text-sm text-red-500">
-                      Missing Fields. Failed to Edit Invoice
-                    </p>
-                }
-      </div>
+      <div
+        className="mt-6"
+        id="validation-error"
+        aria-live="polite"
+        aria-atomic="true"
+      ></div>
       <div className="mt-6 flex justify-end gap-4">
         <Link
-          href="/dashboard/invoices"
+          href="/dashboard/articles"
           className="flex h-10 items-center rounded-lg bg-gray-100 px-4 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
         >
           Cancel
         </Link>
-        <Button type="submit">Edit Invoice</Button>
+        <Button type="submit">
+          {isLoading ? "Loading..." : "Edit Article"}
+        </Button>
       </div>
     </form>
   );
