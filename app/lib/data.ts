@@ -18,18 +18,13 @@ export async function fetchPostsByType(
   noStore();
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   try {
-    const whereClause: any = {};
-
-    if (type) {
-      whereClause.OR = [{ type: type }];
-    }
-
-    if (query) {
-      whereClause.OR = [{ title: { contains: query, mode: "insensitive" } }];
-    }
-
     const data = await db.post.findMany({
-      where: whereClause,
+      where: {
+        AND: {
+          type: type,
+          title: { contains: query, mode: "insensitive" },
+        }
+      },
       include: {
         Category: {
           select: {
@@ -73,17 +68,13 @@ export async function fetchAllPostPages({
 }): Promise<number> {
   noStore();
   try {
-    const whereClause: any = {};
-
-    if (type) {
-      whereClause.OR = [{ type: type }];
-    }
-    if (query) {
-      whereClause.OR = [{ title: { contains: query, mode: "insensitive" } }];
-    }
-
     const data = await db.post.count({
-      where: whereClause,
+      where: {
+        AND: {
+          type: type,
+          title: { contains: query, mode: "insensitive" },
+        }
+      },
     });
 
     const totalPages = Math.ceil(Number(data) / ITEMS_PER_PAGE);
@@ -206,18 +197,12 @@ export async function fetchTopContentData(
   noStore();
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   try {
-    
-    const whereClause: any = {};
-
-    if (type) {
-      whereClause.OR = [{ Post: {type: type }}];
-    }
-    if (query) {
-      whereClause.OR = [{ Post: {title: { contains: query, mode: "insensitive" }}}];
-    }
-
     const data = await db.popularPost.findMany({
-      where: whereClause,
+      where: {
+        AND: {
+          Post: { type: type, title: { contains: query, mode: "insensitive" }},  
+        }
+      },
       include: { Post: {
         include: { Author: true, Category: true },
       } },
@@ -247,15 +232,17 @@ export async function fetchTopContentData(
 
 export async function fetchTopContentPages({
   query,
+  type
 }: {
   query?: string;
+  type: string
 }): Promise<number> {
   noStore();
   try {
     const data = await db.popularPost.count({
       where: {
-        Post: {
-          title: { contains: query, mode: "insensitive" },
+        AND: {
+          Post: { type: type, title: { contains: query, mode: "insensitive" }},  
         }
       },
     });

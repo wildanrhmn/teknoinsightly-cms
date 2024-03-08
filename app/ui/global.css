@@ -5,6 +5,10 @@
 .ck-editor__editable {
   min-height: 300px;
 }
+
+.ck-editor__editable_inline {
+  padding: 0 30px !important;
+}
  
 @layer base {
   :root {

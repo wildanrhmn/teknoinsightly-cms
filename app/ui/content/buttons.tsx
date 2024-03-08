@@ -40,9 +40,15 @@ export async function Delete({
 }) {
   return (
     <button
-      onClick={() => {
-        DeletePost(id, public_id);
-        toast.success("Success Delete Post.");
+      onClick={async() => {
+        await DeletePost(id, public_id)
+        .then((result) => {
+          if(result.success){
+            toast.success(result.message);
+          } else {
+            toast.error(result.message);
+          }
+        })
       }}
       className="rounded-md border p-2 hover:bg-gray-100"
     >
@@ -55,9 +61,15 @@ export async function Delete({
 export async function MakeSwiper({ id }: { id: string }) {
   return (
     <button
-      onClick={() => {
-        makeSwiper(id);
-        toast.success("Success Create Swiper.");
+      onClick={async() => {
+        await makeSwiper(id)
+        .then((result) => {
+          if(result.success){
+            toast.success(result.message);
+          } else {
+            toast.error(result.message);
+          }
+        })
       }}
       className="rounded-md border p-2 hover:bg-gray-100"
     >

@@ -65,7 +65,7 @@ model Comment {
   message    String
   id_post    String
   created_at DateTime @default(now())
-  Post       Post     @relation(fields: [id_post], references: [id])
+  Post       Post     @relation(fields: [id_post], references: [id], onDelete: Cascade)
 }
 
 model Contacted {

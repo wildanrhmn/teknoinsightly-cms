@@ -126,6 +126,7 @@ export async function DeletePost(id: string, public_id: string) {
   }
   revalidatePath('/dashboard/articles');
   revalidatePath('/dashboard/tutorial');
+  return { success: true, message: `Post Deleted.` }
 }
 
 export async function makeSwiper(id: string) {
@@ -181,6 +182,10 @@ export async function DeleteSwiper(id: string) {
     }
   }
   revalidatePath('/dashboard/swiper');
+  return {
+    success: true,
+    message: 'Success Delete Popular Post'
+  };
 }
 
 export async function makePopular(id: string) {

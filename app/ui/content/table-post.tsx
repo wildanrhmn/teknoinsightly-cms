@@ -11,7 +11,7 @@ export default async function Table({
   currentPage: number;
   type: string;
 }) {
-  const posts = await fetchPostsByType(type, currentPage);
+  const posts = await fetchPostsByType(type, currentPage, query);
   return (
     <div className="mt-6 flow-root">
       <div className="inline-block min-w-full align-middle">
