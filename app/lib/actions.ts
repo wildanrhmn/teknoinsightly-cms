@@ -81,7 +81,7 @@ export async function updateContent(id: string, formData: FormData) {
   const oldImage = JSON.parse(formData.get('oldImage') as string);
 
   let imageData: any;
-  if(typeof file === 'string') {
+  if (typeof file === 'string') {
     imageData = oldImage
   } else {
     imageData = await uploadImage(file).then((result: any) => {
@@ -89,22 +89,22 @@ export async function updateContent(id: string, formData: FormData) {
     });
   }
   try {
-      await db.post.update({
-        where: {
-          id: id
-        },
-        data: {
-          title: title,
-          body: body,
-          summary: summary,
-          id_category: category,
-          image: imageData,
-          updated_at: new Date(),
-        }
-      });
-    } catch (error) {
-      return { success: false, message: error };
-    }
+    await db.post.update({
+      where: {
+        id: id
+      },
+      data: {
+        title: title,
+        body: body,
+        summary: summary,
+        id_category: category,
+        image: imageData,
+        updated_at: new Date(),
+      }
+    });
+  } catch (error) {
+    return { success: false, message: error };
+  }
   await cloudinary.uploader.destroy(oldImage[0]);
   revalidatePath('/dashboard/articles');
   revalidatePath('/dashboard/tutorial');
@@ -128,6 +128,46 @@ export async function DeletePost(id: string, public_id: string) {
   revalidatePath('/dashboard/tutorial');
 }
 
+export async function makeSwiper(id: string) {
+  const data = await db.post.findUnique({
+    where: {
+      id
+    }
+  });
+  
+  if (!data) {
+    return {
+      success: false,
+      message: 'Post not found'
+    };
+  }
+
+  try {
+    await db.swiper.create({
+      data: {
+        Post: {
+          connect: {
+            id: data.id
+          }
+        }
+      }
+    });
+  
+  } catch (error) {
+    return {
+      success: false,
+      message: 'Database Error: ' + error
+    };
+  }
+
+  revalidatePath('/dashboard/swiper');
+
+  return {
+    success: true,
+    message: 'Swiper created successfully'
+  };
+}
+
 export async function DeleteSwiper(id: string) {
   try {
     await db.swiper.delete({
@@ -141,4 +181,66 @@ export async function DeleteSwiper(id: string) {
     }
   }
   revalidatePath('/dashboard/swiper');
+}
+
+export async function makePopular(id: string) {
+  const data = await db.post.findUnique({
+    where: {
+      id
+    }
+  });
+  
+  if (!data) {
+    return {
+      success: false,
+      message: 'Post not found'
+    };
+  }
+
+  try {
+    await db.popularPost.create({
+      data: {
+        Post: {
+          connect: {
+            id: data.id
+          }
+        }
+      }
+    });
+  
+  } catch (error) {
+    return {
+      success: false,
+      message: 'Database Error: ' + error
+    };
+  }
+
+  revalidatePath('/dashboard/toparticles');
+  revalidatePath('/dashboard/toptutorial');
+
+  return {
+    success: true,
+    message: 'Popular Post created successfully'
+  };
+}
+
+export async function DeletePopular(id: string) {
+  try {
+    await db.popularPost.delete({
+      where: {
+        id: id
+      }
+    })
+  } catch (error) {
+    return {
+      message: 'Database Error: ' + error
+    }
+  }
+  revalidatePath('/dashboard/toparticles');
+  revalidatePath('/dashboard/toptutorial');
+
+  return {
+    success: true,
+    message: 'Success Delete Popular Post'
+  };
 }

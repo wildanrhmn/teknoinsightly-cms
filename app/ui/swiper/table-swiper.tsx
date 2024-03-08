@@ -25,12 +25,12 @@ export default async function Table({
                     <div className="mb-2 flex items-center">
                       <p>{swiper.Post.title}</p>
                     </div>
-                    <p className="text-sm text-gray-500">{`Dibuat oleh ${swiper.Post.Author.name}`}</p>
+                    <p className="text-sm text-gray-500">{`Dibuat oleh ${swiper.Post.Author?.name}`}</p>
                   </div>
                 </div>
                 <div className="flex w-full items-center justify-between pt-4">
                   <div>
-                    <p>{`Dibuat pada ${swiper.Post.created_at}`}</p>
+                    <p>{`Dibuat pada ${swiper.created_at}`}</p>
                   </div>
                   <div className="flex justify-end gap-2">
                     <Delete id={swiper.id}  />
@@ -63,7 +63,7 @@ export default async function Table({
               </tr>
             </thead>
             <tbody className="bg-white">
-              {swipers?.map((swiper: any) => (
+              {swipers?.map((swiper: Swiper) => (
                 <tr
                   key={swiper.id}
                   className="w-full border-b py-3 text-sm last-of-type:border-none [&:first-child>td:first-child]:rounded-tl-lg [&:first-child>td:last-child]:rounded-tr-lg [&:last-child>td:first-child]:rounded-bl-lg [&:last-child>td:last-child]:rounded-br-lg"
@@ -77,13 +77,13 @@ export default async function Table({
                     {swiper.Post.type.charAt(0).toUpperCase() + swiper.Post.type.slice(1)}
                   </td>
                   <td className="whitespace-nowrap px-3 py-3">
-                    {swiper.Post.created_at}
+                    {swiper.created_at}
                   </td>
                   <td className="whitespace-nowrap px-3 py-3">
-                    {swiper.Post.updated_at}
+                    {swiper.updated_at}
                   </td>
                   <td className="whitespace-nowrap px-3 py-3">
-                    {swiper.Post.Author.name}
+                    {swiper.Post.Author?.name}
                   </td>
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">
                     <div className="flex justify-end gap-3">

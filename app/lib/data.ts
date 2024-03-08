@@ -2,6 +2,7 @@ import {
   Post,
   Category,
   Swiper,
+  PopularList,
 } from './definitions';
 
 import { formatDate } from './utils';
@@ -128,7 +129,9 @@ export async function fetchSwiperData(
           title: { contains: query, mode: "insensitive" },
         },
       },
-      include: { Post: true },
+      include: { Post: {
+        include: { Author: true, Category: true },
+      } },
       orderBy: {
         Post: {
           created_at: "desc",
@@ -189,6 +192,76 @@ export async function fetchCategories({
       }
     });
     return data;
+  } catch (error) {
+    console.log("Database Error: ", error);
+    throw new Error("Database Error");
+  }
+}
+
+export async function fetchTopContentData(
+  currentPage: number = 1,
+  type: string,
+  query?: string,
+): Promise<PopularList[]> {
+  noStore();
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+  try {
+    
+    const whereClause: any = {};
+
+    if (type) {
+      whereClause.OR = [{ Post: {type: type }}];
+    }
+    if (query) {
+      whereClause.OR = [{ Post: {title: { contains: query, mode: "insensitive" }}}];
+    }
+
+    const data = await db.popularPost.findMany({
+      where: whereClause,
+      include: { Post: {
+        include: { Author: true, Category: true },
+      } },
+      orderBy: {
+        Post: {
+          created_at: "desc",
+        }
+      },
+      take: ITEMS_PER_PAGE,
+      skip: offset,
+    });
+
+    const formattedData = data.map((post: any) => {
+      return {
+        ...post,
+        created_at: formatDate(post.Post.created_at),
+        updated_at: formatDate(post.Post.updated_at)
+      };
+    });
+
+    return formattedData;
+  } catch (error) {
+    console.log("Database Error: ", error);
+    throw new Error("Database Error");
+  }
+}
+
+export async function fetchTopContentPages({
+  query,
+}: {
+  query?: string;
+}): Promise<number> {
+  noStore();
+  try {
+    const data = await db.popularPost.count({
+      where: {
+        Post: {
+          title: { contains: query, mode: "insensitive" },
+        }
+      },
+    });
+
+    const totalPages = Math.ceil(Number(data) / ITEMS_PER_PAGE);
+    return totalPages;
   } catch (error) {
     console.log("Database Error: ", error);
     throw new Error("Database Error");

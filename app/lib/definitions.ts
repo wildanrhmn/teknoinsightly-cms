@@ -17,11 +17,15 @@ export type Post = {
 
 export type Swiper = {
   id: string;
+  created_at: string;
+  updated_at: string;
   Post: Post;
 }
 
 export type PopularList = {
   id: string;
+  created_at: string;
+  updated_at: string;
   Post: Post;
 };
 
