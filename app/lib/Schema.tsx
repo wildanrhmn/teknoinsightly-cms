@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
-const MAX_UPLOAD_SIZE = 1024 * 1024 * 3; // 3MB
-const ACCEPTED_FILE_TYPES = ['image/webp'];
+const MAX_UPLOAD_SIZE = 1024 * 1024 * 3;
 
 export const FormDataSchema = z.object({
     title: z.string().min(1, { message: 'Title is required.' }),
@@ -11,10 +10,6 @@ export const FormDataSchema = z.object({
     image: z.any()
     .refine((files) => files?.length == 1, "Image is required.")
     .refine((files) => files?.[0]?.size <= MAX_UPLOAD_SIZE, `Max file size is 3MB.`)
-    .refine(
-      (files) => ACCEPTED_FILE_TYPES.includes(files?.[0]?.type),
-      ".webp are accepted."
-    ),
 })
 
 export const EditDataSchema = FormDataSchema.omit({ image: true }).extend({

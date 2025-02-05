@@ -2,7 +2,7 @@
 
 import cloudinary from './cloudinary';
 
-import { db } from './prisma/db.server';
+import { db } from '../../prisma/db.server';
 import { signIn } from '@/auth';
 import { AuthError } from 'next-auth';
 import { revalidatePath } from 'next/cache';

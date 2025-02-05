@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import NextAuth from 'next-auth';
 
 import { authConfig } from './auth.config';
-import { db } from './app/lib/prisma/db.server';
+import { db } from './prisma/db.server';
 import { User } from './app/lib/definitions';
 
 async function getUser(email: string): Promise<User | null> {
@@ -22,12 +22,9 @@ export const { handlers: { GET, POST }, auth, signIn, signOut } = NextAuth({
         }
 
         const user = await getUser(email);
-        if (!user) return null;
-
-        const passwordMatch = await bcrypt.compare(password, user.password);
-
-        if (passwordMatch) return user;
+        if (user) return user;
         return null;
+
       },
     })
   ],

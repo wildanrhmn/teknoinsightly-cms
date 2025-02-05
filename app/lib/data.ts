@@ -6,7 +6,7 @@ import {
 } from './definitions';
 
 import { formatDate } from './utils';
-import { db } from './prisma/db.server';
+import { db } from '../../prisma/db.server';
 import { unstable_noStore as noStore } from 'next/cache';
 
 const ITEMS_PER_PAGE = 6;
